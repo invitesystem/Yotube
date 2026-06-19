@@ -5,6 +5,15 @@ import { supabase } from '@/lib/supabaseClient'
 type Ytc = { id: string; author: string; text: string; likes: number }
 type Profile = { id: string; username: string }
 
+function reasonText(e: string) {
+  if (e === 'commentsDisabled') return 'У этого видео отключены комментарии 🤷'
+  if (e === 'quotaExceeded') return 'Исчерпана дневная квота YouTube API. Попробуй завтра.'
+  if (e === 'no_api_key') return 'Не задан ключ YOUTUBE_API_KEY в Vercel.'
+  if (e === 'keyInvalid' || e === 'badRequest' || e === 'forbidden')
+    return 'Ключ YouTube API недействителен или ограничен (проверь разрешён ли YouTube Data API v3).'
+  return 'Не удалось загрузить комментарии: ' + e
+}
+
 export default function YouTubeComments({
   youtubeId,
   me,
@@ -18,12 +27,18 @@ export default function YouTubeComments({
 }) {
   const [items, setItems] = useState<Ytc[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setLoading(true)
+    setError(null)
     fetch(`/api/youtube/comments?videoId=${youtubeId}`)
       .then((r) => r.json())
-      .then((d) => setItems(d.items || []))
+      .then((d) => {
+        setItems(d.items || [])
+        setError(d.error || null)
+      })
+      .catch((e) => setError(String(e)))
       .finally(() => setLoading(false))
   }, [youtubeId])
 
@@ -60,7 +75,18 @@ export default function YouTubeComments({
       })
   }
 
-  if (loading) return <div className="p-4 text-sm text-white/40 animate-pulse">Загрузка комментариев…</div>
+  if (loading)
+    return <div className="p-4 text-sm text-white/40 animate-pulse">Загрузка комментариев…</div>
+
+  if (error)
+    return (
+      <div className="p-4 text-sm text-yellow-300/80 leading-relaxed">
+        {reasonText(error)}
+      </div>
+    )
+
+  if (!items.length)
+    return <div className="p-4 text-sm text-white/40">Комментариев пока нет.</div>
 
   return (
     <div className="h-full overflow-y-auto p-3 space-y-3">

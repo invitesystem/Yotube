@@ -52,6 +52,12 @@ export default function Home() {
     if (me!.is_host) pushState({ youtube_id: id, position_sec: 0, is_playing: true })
   }
 
+  // хост убирает видео для всех
+  function clearVideo() {
+    setSoloVideo(null)
+    if (me!.is_host) pushState({ youtube_id: null, is_playing: false, position_sec: 0 })
+  }
+
   // клик по уведомлению
   async function openNotif(n: Notif) {
     setSoloVideo(n.youtube_id !== room?.youtube_id ? n.youtube_id : null)
@@ -99,6 +105,15 @@ export default function Home() {
           <div className="aspect-video glass rounded-2xl grid place-items-center text-white/40">
             Хост ещё не выбрал видео
           </div>
+        )}
+
+        {me.is_host && room?.youtube_id && !soloVideo && (
+          <button
+            onClick={clearVideo}
+            className="w-full text-xs glass text-red-300 rounded-xl py-2 bloom-hover"
+          >
+            🗑 Убрать видео для всех
+          </button>
         )}
 
         {me.is_host && <Search onPick={pickVideo} />}

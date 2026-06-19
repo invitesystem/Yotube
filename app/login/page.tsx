@@ -37,6 +37,20 @@ export default function Login() {
     else window.location.href = '/'
   }
 
+  // ГОСТЕВОЙ вход — без почты, ник вида Guest123456
+  async function guest() {
+    setErr('')
+    setLoading(true)
+    const username = 'Guest' + Math.floor(100000 + Math.random() * 900000)
+    const { error } = await supabase.auth.signInAnonymously({
+      options: { data: { username } },
+    })
+    setLoading(false)
+    if (error)
+      setErr('Гостевой вход выключен. Включи Anonymous Sign-ins в Supabase.')
+    else window.location.href = '/'
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-sm glass rounded-3xl p-8 space-y-4 text-center bloom fade-up">
@@ -91,6 +105,16 @@ export default function Login() {
             </button>
           </>
         )}
+
+        <div className="pt-3 border-t border-white/10">
+          <button
+            onClick={guest}
+            disabled={loading}
+            className="w-full glass rounded-xl py-2.5 text-sm text-white/70 hover:text-white bloom-hover disabled:opacity-50"
+          >
+            🎭 Войти как гость (без почты)
+          </button>
+        </div>
 
         {err && <p className="text-xs text-red-400">{err}</p>}
       </div>
