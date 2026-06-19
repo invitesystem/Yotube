@@ -14,7 +14,7 @@ create table public.profiles (
 -- 2. Состояние комнаты — ВСЕГДА одна строка (id = 1), перезаписывается
 create table public.room_state (
   id           smallint primary key default 1,
-  youtube_id   char(11),
+  youtube_id   text,
   position_sec integer not null default 0,
   is_playing   boolean not null default false,
   updated_by   uuid references public.profiles(id),
@@ -27,7 +27,7 @@ insert into public.room_state (id) values (1);
 create table public.messages (
   id         bigint generated always as identity primary key,
   user_id    uuid not null references public.profiles(id) on delete cascade,
-  youtube_id char(11) not null,
+  youtube_id text not null,
   body       text not null,
   ts_sec     integer,   -- таймстамп, если в тексте есть mm:ss (клик = перемотка)
   created_at timestamptz not null default now()
@@ -37,7 +37,7 @@ create index messages_video_idx on public.messages (youtube_id, created_at);
 -- 4. Расшаренные нативные комментарии YouTube
 create table public.yt_shares (
   id            bigint generated always as identity primary key,
-  youtube_id    char(11) not null,
+  youtube_id    text not null,
   yt_comment_id text not null,
   yt_text       text not null,
   yt_author     text,
@@ -69,7 +69,7 @@ create table public.notifications (
   recipient  uuid not null references public.profiles(id) on delete cascade,
   actor      uuid references public.profiles(id) on delete set null,
   kind       smallint not null,   -- 1 = упоминание (@), 2 = поделились YT-комментом
-  youtube_id char(11) not null,
+  youtube_id text not null,
   message_id bigint references public.messages(id) on delete cascade,
   share_id   bigint references public.yt_shares(id) on delete cascade,
   is_read    boolean not null default false,
