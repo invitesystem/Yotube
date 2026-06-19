@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #06060a;
+  --violet: #7c3aed;
+  --violet-glow: rgba(124, 58, 237, 0.55);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(1200px 800px at 12% -10%, #1c0b40 0%, transparent 55%),
+    radial-gradient(1000px 700px at 112% 8%, #0a2748 0%, transparent 50%),
+    var(--bg);
+  color: #fff;
+  overflow-x: hidden;
+}
+
+/* === Aurora: живой фон с размытием по Гауссу === */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.aurora span {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(130px); /* Gaussian blur */
+  opacity: 0.6;
+  animation: float 20s ease-in-out infinite;
+}
+.aurora span:nth-child(1) {
+  width: 520px;
+  height: 520px;
+  background: #7c3aed;
+  top: -140px;
+  left: -90px;
+}
+.aurora span:nth-child(2) {
+  width: 460px;
+  height: 460px;
+  background: #2563eb;
+  bottom: -160px;
+  right: -70px;
+  animation-delay: -7s;
+}
+.aurora span:nth-child(3) {
+  width: 380px;
+  height: 380px;
+  background: #db2777;
+  top: 38%;
+  left: 55%;
+  animation-delay: -13s;
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(46px, -34px) scale(1.12);
+  }
+  66% {
+    transform: translate(-34px, 44px) scale(0.94);
+  }
+}
+
+/* === Стекло (glassmorphism + размытие) === */
+.glass {
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.glass-soft {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* === Блум / свечение === */
+.bloom {
+  box-shadow:
+    0 0 0 1px rgba(124, 58, 237, 0.35),
+    0 0 28px var(--violet-glow),
+    0 0 70px rgba(124, 58, 237, 0.22);
+}
+.bloom-hover {
+  transition:
+    box-shadow 0.35s ease,
+    transform 0.35s ease;
+}
+.bloom-hover:hover {
+  box-shadow:
+    0 0 24px var(--violet-glow),
+    0 0 56px rgba(124, 58, 237, 0.34);
+  transform: translateY(-1px);
+}
+.text-glow {
+  text-shadow: 0 0 20px rgba(124, 58, 237, 0.75);
+}
+
+.btn-violet {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  box-shadow: 0 6px 22px rgba(124, 58, 237, 0.45);
+  transition: all 0.3s ease;
+}
+.btn-violet:hover {
+  box-shadow: 0 10px 32px rgba(124, 58, 237, 0.7);
+  transform: translateY(-1px);
+}
+.btn-violet:active {
+  transform: translateY(0);
+}
+
+/* === Плавные появления === */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fadeUp 0.4s ease both;
+}
+
+/* === Скроллбар === */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* === Подсветка YT-коммента по уведомлению === */
+.highlight-pulse {
+  animation: hp 2.4s ease;
+}
+@keyframes hp {
+  0% {
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0);
+  }
+  18% {
+    box-shadow:
+      0 0 0 2px rgba(250, 204, 21, 0.9),
+      0 0 34px rgba(250, 204, 21, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0);
+  }
+}
