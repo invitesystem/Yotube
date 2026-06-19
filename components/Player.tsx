@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { RoomState } from './useRoom'
 import { playerBus } from '@/lib/playerBus'
 
@@ -8,6 +8,16 @@ declare global {
     YT: any
     onYouTubeIframeAPIReady: () => void
   }
+}
+
+// расшифровка кодов ошибок YouTube IFrame
+function errText(code: number) {
+  if (code === 101 || code === 150)
+    return 'Владелец запретил встраивание этого видео (или оно 18+). На сайте его показать нельзя — выбери другое.'
+  if (code === 100) return 'Видео удалено или сделано приватным.'
+  if (code === 2) return 'Неверный ID видео.'
+  if (code === 5) return 'Ошибка плеера. Попробуй обновить страницу.'
+  return 'Не удалось воспроизвести видео (код ' + code + ').'
 }
 
 export default function Player({
@@ -23,11 +33,11 @@ export default function Player({
   const ready = useRef(false)
   const lastSync = useRef('')
   const currentVideo = useRef<string | null>(null)
-  // рефы, чтобы коллбэки не ловили старые значения
   const isHostRef = useRef(isHost)
   const actionRef = useRef(onHostAction)
   isHostRef.current = isHost
   actionRef.current = onHostAction
+  const [error, setError] = useState<number | null>(null)
 
   // 1. подгружаем YouTube IFrame API один раз
   useEffect(() => {
@@ -38,7 +48,7 @@ export default function Player({
     }
   }, [])
 
-  // 2. создаём плеер ОДИН раз (и включаем автоплей)
+  // 2. создаём плеер ОДИН раз (с автоплеем)
   useEffect(() => {
     function init() {
       if (playerRef.current) return
@@ -51,6 +61,7 @@ export default function Player({
           modestbranding: 1,
           autoplay: 1,
           playsinline: 1,
+          origin: typeof window !== 'undefined' ? window.location.origin : undefined,
         },
         events: {
           onReady: () => {
@@ -67,6 +78,7 @@ export default function Player({
               } catch (e) {}
             }
           },
+          onError: (e: any) => setError(e.data),
           onStateChange: (e: any) => {
             if (!isHostRef.current) return
             const t = Math.floor(playerRef.current.getCurrentTime())
@@ -83,13 +95,14 @@ export default function Player({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 3. когда меняется видео -> грузим у ВСЕХ (и хост, и гости), автоплей
+  // 3. когда меняется видео -> грузим у ВСЕХ, автоплей
   useEffect(() => {
     const p = playerRef.current
     if (!p || !ready.current || !room?.youtube_id) return
     if (currentVideo.current !== room.youtube_id) {
       currentVideo.current = room.youtube_id
-      p.loadVideoById(room.youtube_id) // сразу запускает воспроизведение
+      setError(null)
+      p.loadVideoById(room.youtube_id)
     }
   }, [room?.youtube_id])
 
@@ -105,7 +118,7 @@ export default function Player({
     else p.pauseVideo()
   }, [room, isHost])
 
-  // 5. хост раз в 5 сек шлёт позицию (чтобы опоздавшие догнали)
+  // 5. хост раз в 5 сек шлёт позицию
   useEffect(() => {
     if (!isHost) return
     const t = setInterval(() => {
@@ -127,6 +140,24 @@ export default function Player({
           className="absolute inset-0 cursor-not-allowed"
           title="Управляет только хост"
         />
+      )}
+      {error !== null && (
+        <div className="absolute inset-0 bg-black/85 backdrop-blur-sm grid place-items-center text-center p-6">
+          <div className="space-y-3">
+            <div className="text-2xl">⚠️</div>
+            <p className="text-sm text-white/80 max-w-xs">{errText(error)}</p>
+            {room?.youtube_id && (
+              <a
+                href={'https://www.youtube.com/watch?v=' + room.youtube_id}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block text-xs btn-violet px-4 py-2 rounded-xl"
+              >
+                Открыть на YouTube →
+              </a>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )
